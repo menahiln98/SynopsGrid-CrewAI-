@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SynopsGrid — Intelligence Digest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #f5f2ea;
+    --surface: #ffffff;
+    --surface-alt: #fbf9f3;
+    --border: #e6e0d1;
+    --ink: #1d2130;
+    --ink-soft: #4a4a44;
+    --ink-muted: #85826f;
+    --accent: #5b52d6;
+    --accent-dark: #4842b0;
+    --accent-soft: #ecebfb;
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --font-serif: "Source Serif 4", Georgia, serif;
+    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+
+  /* ---------- Header ---------- */
+  header.site {
+    position: sticky; top: 0; z-index: 30;
+    background: rgba(245, 242, 234, 0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  .site-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 32px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-mark {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: var(--accent);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
+    padding: 6px;
+  }
+  .brand-mark span { background: #fff; border-radius: 2px; }
+  .brand-name { font-family: var(--font-serif); font-weight: 700; font-size: 20px; letter-spacing: -0.01em; }
+
+  nav.primary { display: flex; gap: 28px; }
+  nav.primary a {
+    text-decoration: none; color: var(--ink-muted); font-size: 14.5px; font-weight: 500;
+    padding-bottom: 4px; border-bottom: 2px solid transparent; transition: color .15s, border-color .15s;
+  }
+  nav.primary a.active, nav.primary a:hover { color: var(--ink); border-color: var(--accent); }
+
+  .header-right { display: flex; align-items: center; gap: 18px; }
+  .run-status { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-muted); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #8f8c78; }
+  .dot.live { background: #35b06a; box-shadow: 0 0 0 3px rgba(53,176,106,.15); }
+
+  button.run-btn {
+    background: var(--accent); color: #fff; border: none; border-radius: 9px;
+    padding: 10px 18px; font-family: var(--font-sans); font-weight: 600; font-size: 14px;
+    cursor: pointer; transition: background .15s, transform .1s;
+  }
+  button.run-btn:hover { background: var(--accent-dark); }
+  button.run-btn:active { transform: scale(.98); }
+  button.run-btn:disabled { opacity: .6; cursor: progress; }
+
+  /* ---------- Digest header ---------- */
+  .digest-head { padding: 44px 0 28px; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; }
+  .eyebrow {
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-muted); margin: 0 0 10px;
+  }
+  h1.title { font-family: var(--font-serif); font-size: 46px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+  .digest-sub { text-align: right; font-size: 14px; color: var(--ink-muted); line-height: 1.6; max-width: 260px; }
+
+  /* ---------- Pipeline card ---------- */
+  .pipeline-card {
+    background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 26px 30px 20px; margin-bottom: 22px;
+  }
+  .pipeline-cols { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: center; gap: 18px; margin-top: 18px; }
+  .pipeline-col { min-width: 0; }
+  .pipeline-connector { width: 34px; height: 1px; border-top: 1px dashed var(--border); position: relative; margin-top: -20px; }
+  .pipeline-connector::after { content: "→"; position: absolute; right: -14px; top: -9px; color: var(--ink-muted); font-size: 13px; }
+  .step-check {
+    width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+    background: #d8d4c3; color: #fff; font-size: 12px; margin-right: 8px; flex-shrink: 0;
+  }
+  .step-check.done { background: var(--accent); }
+  .step-title-row { display: flex; align-items: center; margin-bottom: 6px; }
+  .step-title { font-weight: 700; font-size: 15px; }
+  .step-role { font-size: 13px; color: var(--ink-soft); margin: 0 0 2px 30px; }
+  .step-tool { font-size: 13px; color: var(--ink-muted); margin: 0 0 8px 30px; }
+  .step-count { font-size: 13.5px; font-weight: 600; color: var(--accent); margin-left: 30px; }
+
+  @media (max-width: 760px) {
+    .pipeline-cols { grid-template-columns: 1fr; }
+    .pipeline-connector { display: none; }
+  }
+
+  /* ---------- Stat cards ---------- */
+  .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 26px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 18px 18px 16px;
+  }
+  .stat-num { font-family: var(--font-serif); font-size: 32px; font-weight: 700; line-height: 1; margin-bottom: 8px; }
+  .stat-label { font-size: 13.5px; font-weight: 600; margin-bottom: 3px; }
+  .stat-sub { font-size: 12px; color: var(--ink-muted); }
+  @media (max-width: 900px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+
+  /* ---------- Filter chips ---------- */
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 26px; }
+  .chip {
+    font-family: var(--font-sans); font-size: 13.5px; font-weight: 500;
+    padding: 8px 16px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--ink-soft); cursor: pointer; transition: all .15s;
+  }
+  .chip:hover { border-color: var(--accent); }
+  .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* ---------- Story grid ---------- */
+  .story-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 40px;
+    grid-auto-flow: dense;
+  }
+  .story-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    overflow: hidden; display: flex; flex-direction: column;
+  }
+  .story-card.hero { grid-column: span 3 / span 3; }
+  @media (min-width: 760px) { .story-card.hero { grid-column: span 3; } }
+  @media (min-width: 980px) {
+    .story-grid .story-card:nth-child(1),
+    .story-grid .story-card:nth-child(2) { grid-column: span 3; }
+  }
+  @media (max-width: 760px) { .story-grid { grid-template-columns: 1fr; } .story-card.hero { grid-column: span 1; } }
+
+  .art-tile { position: relative; height: 168px; overflow: hidden; }
+  .art-tile svg { width: 100%; height: 100%; display: block; }
+  .score-badge {
+    position: absolute; top: 12px; right: 12px; background: var(--accent); color: #fff;
+    font-family: var(--font-mono); font-weight: 600; font-size: 13px; padding: 4px 9px; border-radius: 7px;
+  }
+  .art-tags { position: absolute; left: 12px; bottom: 12px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .art-tags span {
+    background: rgba(20,18,30,.55); color: #fff; font-size: 11px; font-weight: 500;
+    padding: 3px 9px; border-radius: 999px; backdrop-filter: blur(2px);
+  }
+
+  .story-body { padding: 18px 20px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .story-title { font-family: var(--font-serif); font-weight: 700; font-size: 18px; line-height: 1.3; margin: 0; }
+  .story-card.hero .story-title { font-size: 21px; }
+  .story-excerpt { font-size: 13.5px; color: var(--ink-soft); line-height: 1.55; margin: 0; }
+  .story-footer {
+    margin-top: auto; padding-top: 10px; display: flex; align-items: center; justify-content: space-between;
+    font-size: 12.5px; color: var(--ink-muted); border-top: 1px solid var(--border);
+  }
+  .story-source { font-weight: 500; }
+  .why-toggle {
+    background: none; border: none; color: var(--accent); font-family: var(--font-sans);
+    font-size: 12.5px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;
+    padding: 0;
+  }
+  .why-toggle svg { transition: transform .18s; }
+  .why-toggle.open svg { transform: rotate(180deg); }
+  .why-panel {
+    max-height: 0; overflow: hidden; transition: max-height .2s ease;
+    font-size: 12.5px; color: var(--ink-soft); line-height: 1.5;
+  }
+  .why-panel.open { max-height: 120px; padding-top: 8px; }
+
+  /* ---------- Empty state ---------- */
+  .empty-state {
+    text-align: center; padding: 70px 20px; border: 1px dashed var(--border); border-radius: var(--radius-lg);
+    background: var(--surface-alt); margin-bottom: 40px;
+  }
+  .empty-state h3 { font-family: var(--font-serif); font-size: 22px; margin: 0 0 8px; }
+  .empty-state p { color: var(--ink-muted); font-size: 14px; margin: 0; }
+
+  /* ---------- Footer ---------- */
+  footer.site {
+    border-top: 1px solid var(--border); padding: 22px 0 60px;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+  }
+  .footer-brand { font-family: var(--font-serif); font-weight: 700; font-size: 15px; }
+  .footer-meta { font-size: 12.5px; color: var(--ink-muted); display: flex; gap: 18px; flex-wrap: wrap; }
+
+  .help-fab {
+    position: fixed; bottom: 22px; right: 22px; width: 42px; height: 42px; border-radius: 50%;
+    background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+    color: var(--ink-muted); font-family: var(--font-sans); font-weight: 600; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.06);
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="site-inner">
+    <div class="brand">
+      <div class="brand-mark"><span></span><span></span><span></span><span></span></div>
+      <span class="brand-name">SynopsGrid</span>
+    </div>
+    <nav class="primary">
+      <a href="#digest" class="active">Intelligence</a>
+      <a href="#pipeline-section">Pipeline</a>
+      <a href="#stories-section">Topics</a>
+      <a href="#footer-section">Archives</a>
+    </nav>
+    <div class="header-right">
+      <div class="run-status"><span class="dot" id="statusDot"></span><span id="lastRunLabel">Loading…</span></div>
+      <button class="run-btn" id="runBtn">Run Pipeline</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="digest-head" id="digest">
+    <div>
+      <p class="eyebrow" id="eyebrowLabel">INTELLIGENCE DIGEST</p>
+      <h1 class="title" id="scopeTitle">Business &amp; Technology</h1>
+    </div>
+    <div class="digest-sub">Ranked by business impact · Deduplicated · Distributed automatically</div>
+  </div>
+
+  <div class="pipeline-card" id="pipeline-section">
+    <p class="eyebrow" style="margin:0;">PIPELINE · SEQUENTIAL RUN</p>
+    <div class="pipeline-cols">
+      <div class="pipeline-col">
+        <div class="step-title-row"><span class="step-check" id="checkResearcher">✓</span><span class="step-title">Researcher</span></div>
+        <p class="step-role">News Fetcher</p>
+        <p class="step-tool">SerpAPI · Google News</p>
+        <p class="step-count" id="countResearcher">— stories</p>
+      </div>
+      <div class="pipeline-connector"></div>
+      <div class="pipeline-col">
+        <div class="step-title-row"><span class="step-check" id="checkSummarizer">✓</span><span class="step-title">Summarizer</span></div>
+        <p class="step-role">Ranker &amp; Dedup</p>
+        <p class="step-tool">LLM-structured output</p>
+        <p class="step-count" id="countSummarizer">— stories</p>
+      </div>
+      <div class="pipeline-connector"></div>
+      <div class="pipeline-col">
+        <div class="step-title-row"><span class="step-check" id="checkPublisher">✓</span><span class="step-title">Publisher</span></div>
+        <p class="step-role">Distributor</p>
+        <p class="step-tool">Slack · Google Sheets</p>
+        <p class="step-count" id="countPublisher">— stories</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card"><div class="stat-num" id="statFetched">—</div><div class="stat-label">Stories Fetched</div><div class="stat-sub" id="statFetchedSub">across N topics</div></div>
+    <div class="stat-card"><div class="stat-num" id="statDedup">—</div><div class="stat-label">After Dedup</div><div class="stat-sub" id="statDedupSub">N duplicates removed</div></div>
+    <div class="stat-card"><div class="stat-num" id="statScored">—</div><div class="stat-label">Scored &amp; Ranked</div><div class="stat-sub" id="statScoredSub">avg score —/10</div></div>
+    <div class="stat-card"><div class="stat-num" id="statSlack">—</div><div class="stat-label">Published to Slack</div><div class="stat-sub">top stories only</div></div>
+    <div class="stat-card"><div class="stat-num" id="statSheets">—</div><div class="stat-label">Logged to Sheets</div><div class="stat-sub">full archive</div></div>
+  </div>
+
+  <div class="chips" id="chips"></div>
+
+  <div id="stories-section">
+    <div class="story-grid" id="storyGrid"></div>
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <h3>No run data yet</h3>
+      <p id="emptyNote">Click "Run Pipeline" above, or wait for the next scheduled run.</p>
+    </div>
+  </div>
+
+</div>
+
+<footer class="site" id="footer-section">
+  <div class="wrap" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; width:100%;">
+    <span class="footer-brand">SynopsGrid</span>
+    <div class="footer-meta">
+      <span>CrewAI · SerpAPI · Groq · Slack · Google Sheets</span>
+      <span id="cronLabel">Cron: every 4h</span>
+    </div>
+  </div>
+</footer>
+
+<div class="help-fab" title="SynopsGrid dashboard — reads live data from your Google Sheet">?</div>
+
+<script>
+  const ART_THEMES = {
+    "Technology":  { grad: ["#1c2250", "#2b3a86"], pattern: "dots" },
+    "Business":    { grad: ["#3a2f18", "#8a5a2c"], pattern: "grid" },
+    "Funding":     { grad: ["#2a1f52", "#6b3fa0"], pattern: "chart" },
+    "Markets":     { grad: ["#101418", "#2c3540"], pattern: "candles" },
+    "Policy":      { grad: ["#0e2f2a", "#1f6b5c"], pattern: "grid" },
+    "Other":       { grad: ["#2a2a2a", "#4a4a4a"], pattern: "dots" },
+  };
+
+  function artSvg(category) {
+    const theme = ART_THEMES[category] || ART_THEMES["Other"];
+    const [c1, c2] = theme.grad;
+    const gradId = "g" + Math.random().toString(36).slice(2, 8);
+    let inner = "";
+    if (theme.pattern === "dots") {
+      let dots = "";
+      for (let x = 10; x < 300; x += 22) for (let y = 10; y < 168; y += 22) dots += `<circle cx="${x}" cy="${y}" r="1.6" fill="#ffffff" opacity="0.35"/>`;
+      inner = dots;
+    } else if (theme.pattern === "grid") {
+      let lines = "";
+      for (let x = 0; x < 300; x += 24) lines += `<line x1="${x}" y1="0" x2="${x}" y2="168" stroke="#ffffff" stroke-opacity="0.12"/>`;
+      for (let y = 0; y < 168; y += 24) lines += `<line x1="0" y1="${y}" x2="300" y2="${y}" stroke="#ffffff" stroke-opacity="0.12"/>`;
+      inner = lines;
+    } else if (theme.pattern === "chart") {
+      inner = `<polyline points="10,140 60,110 100,120 140,80 180,90 220,50 260,60 290,25" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="2.5"/>`;
+    } else if (theme.pattern === "candles") {
+      let bars = "";
+      for (let i = 0; i < 12; i++) {
+        const x = 15 + i * 24, h = 20 + Math.abs(Math.sin(i * 1.7)) * 90, y = 84 - h / 2;
+        const up = i % 3 !== 0;
+        bars += `<rect x="${x}" y="${y}" width="10" height="${h}" fill="${up ? '#5ec98a' : '#e0655c'}" opacity="0.8" rx="1.5"/>`;
+      }
+      inner = bars;
+    }
+    return `<svg viewBox="0 0 300 168" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="${gradId}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/>
+      </linearGradient></defs>
+      <rect width="300" height="168" fill="url(#${gradId})"/>${inner}
+    </svg>`;
+  }
+
+  function chevronSvg() {
+    return `<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  }
+
+  function titleCase(s) {
+    return (s || "").replace(/\w\S*/g, t => t[0].toUpperCase() + t.slice(1));
+  }
+
+  function esc(s) {
+    const d = document.createElement("div"); d.textContent = s == null ? "" : String(s); return d.innerHTML;
+  }
+
+  let ALL_STORIES = [];
+  let ACTIVE_TOPIC = "All";
+
+  function renderChips(topics) {
+    const el = document.getElementById("chips");
+    const items = ["All", ...topics];
+    el.innerHTML = items.map(t =>
+      `<button class="chip ${t === ACTIVE_TOPIC ? "active" : ""}" data-topic="${esc(t)}">${esc(t === "All" ? "All" : titleCase(t))}</button>`
+    ).join("");
+    el.querySelectorAll(".chip").forEach(btn => {
+      btn.addEventListener("click", () => {
+        ACTIVE_TOPIC = btn.dataset.topic;
+        renderChips(topics);
+        renderStories();
+      });
+    });
+  }
+
+  function renderStories() {
+    const grid = document.getElementById("storyGrid");
+    const empty = document.getElementById("emptyState");
+    const filtered = ACTIVE_TOPIC === "All" ? ALL_STORIES : ALL_STORIES.filter(s => s.topic === ACTIVE_TOPIC);
+
+    if (!filtered.length) {
+      grid.innerHTML = "";
+      empty.style.display = "block";
+      document.getElementById("emptyNote").textContent = ALL_STORIES.length
+        ? "No stories for this topic in the latest run."
+        : "Click \"Run Pipeline\" above, or wait for the next scheduled run.";
+      return;
+    }
+    empty.style.display = "none";
+
+    grid.innerHTML = filtered.map((s, i) => `
+      <article class="story-card ${i < 2 ? "hero" : ""}">
+        <div class="art-tile">
+          ${artSvg(s.category)}
+          <span class="score-badge">${s.relevance_score.toFixed(1)}</span>
+          <div class="art-tags">
+            <span>${esc(s.category)}</span>
+            ${s.published_to_slack ? "<span>Slack</span>" : ""}
+          </div>
+        </div>
+        <div class="story-body">
+          <h3 class="story-title"><a href="${esc(s.link)}" target="_blank" rel="noopener" style="text-decoration:none; color:inherit;">${esc(s.title)}</a></h3>
+          <p class="story-excerpt">${esc(s.summary)}</p>
+          <div class="why-panel" id="why-${i}">${esc(s.why_it_matters)}</div>
+          <div class="story-footer">
+            <span class="story-source">${esc(s.source)} · ${esc(s.published_date || "n/a")}</span>
+            <button class="why-toggle" data-idx="${i}">Why it matters ${chevronSvg()}</button>
+          </div>
+        </div>
+      </article>
+    `).join("");
+
+    grid.querySelectorAll(".why-toggle").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = btn.dataset.idx;
+        document.getElementById("why-" + idx).classList.toggle("open");
+        btn.classList.toggle("open");
+      });
+    });
+  }
+
+  function timeAgo(iso) {
+    if (!iso) return "no runs yet";
+    const diffMs = Date.now() - new Date(iso).getTime();
+    const h = Math.floor(diffMs / 3600000);
+    if (h < 1) return "just now";
+    if (h < 24) return `${h}h ago`;
+    return `${Math.floor(h / 24)}d ago`;
+  }
+
+  async function loadDashboard() {
+    let data;
+    try {
+      const res = await fetch("/api/dashboard");
+      data = await res.json();
+    } catch (e) {
+      data = { ok: false, note: "Could not reach /api/dashboard." };
+    }
+
+    document.getElementById("eyebrowLabel").textContent = `INTELLIGENCE DIGEST · ${(data.date_label || "").toUpperCase()}`;
+    document.getElementById("scopeTitle").textContent = data.category_scope || "Business & Technology";
+    document.getElementById("lastRunLabel").textContent = `Last run ${timeAgo(data.last_run_utc)}`;
+    document.getElementById("statusDot").classList.toggle("live", !!data.ok);
+
+    const p = data.pipeline || {};
+    const setStep = (key, count) => {
+      document.getElementById("count" + key).textContent = `${count} stories`;
+      document.getElementById("check" + key).classList.toggle("done", count > 0);
+    };
+    setStep("Researcher", p.researcher ? p.researcher.count : 0);
+    setStep("Summarizer", p.summarizer ? p.summarizer.count : 0);
+    setStep("Publisher", p.publisher ? p.publisher.count : 0);
+
+    const st = data.stats || {};
+    document.getElementById("statFetched").textContent = st.fetched ?? 0;
+    document.getElementById("statFetchedSub").textContent = `across ${(data.topics || []).length || "N"} topics`;
+    document.getElementById("statDedup").textContent = st.after_dedup ?? 0;
+    document.getElementById("statDedupSub").textContent = `${st.duplicates_removed ?? 0} duplicates removed`;
+    document.getElementById("statScored").textContent = st.scored ?? 0;
+    document.getElementById("statScoredSub").textContent = `avg score ${st.avg_score ?? "—"}/10`;
+    document.getElementById("statSlack").textContent = st.published_to_slack ?? 0;
+    document.getElementById("statSheets").textContent = st.logged_to_sheets ?? 0;
+
+    ALL_STORIES = data.stories || [];
+    ACTIVE_TOPIC = "All";
+    renderChips(data.topics || []);
+    renderStories();
+  }
+
+  document.getElementById("runBtn").addEventListener("click", async () => {
+    const btn = document.getElementById("runBtn");
+    const secret = window.prompt("Enter CRON_SECRET to trigger a run:");
+    if (secret === null) return;
+    btn.disabled = true;
+    const original = btn.textContent;
+    btn.textContent = "Running… (up to a minute)";
+    try {
+      const res = await fetch("/api/cron", { method: "POST", headers: { "Authorization": `Bearer ${secret}` } });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        alert(`Run failed (${res.status}): ${body.message || body.error || "unknown error"}`);
+      } else {
+        await loadDashboard();
+      }
+    } catch (e) {
+      alert("Could not reach /api/cron: " + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = original;
+    }
+  });
+
+  loadDashboard();
+</script>
+
+</body>
+</html>
